@@ -8,6 +8,7 @@
 .env
 .env.backup
 .env.production
+storage/app/.docker_seeded
 .phpactor.json
 .phpunit.result.cache
 Homestead.json
@@ -24,3 +25,6 @@ yarn-error.log
 
 #Ignore cursor AI rules
 .cursor/rules/codacy.mdc
+
+docs/graphify-out/
+docs/**

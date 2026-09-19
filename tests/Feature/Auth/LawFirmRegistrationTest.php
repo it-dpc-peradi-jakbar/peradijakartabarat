@@ -5,11 +5,19 @@ namespace Tests\Feature\Auth;
 use App\Models\LawFirm;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\SeedsJakbarWilayah;
 use Tests\TestCase;
 
 class LawFirmRegistrationTest extends TestCase
 {
     use RefreshDatabase;
+    use SeedsJakbarWilayah;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seedJakbarWilayah();
+    }
 
     public function test_law_firm_registration_screen_can_be_rendered(): void
     {
@@ -30,6 +38,7 @@ class LawFirmRegistrationTest extends TestCase
             'password_confirmation' => 'password',
             'bar_membership_number' => 'KTA-DPC-JB-99999',
             'years_of_experience' => 5,
+            ...$this->jakbarPayload(),
         ]);
 
         $this->assertAuthenticated();
@@ -38,8 +47,10 @@ class LawFirmRegistrationTest extends TestCase
         $user = User::where('email', 'firm@example.com')->first();
         $this->assertSame('law_firm', $user->role);
         $this->assertNotNull($user->supervisingLawyer);
-        $this->assertSame('Kantor Uji Coba', $user->supervisingLawyer->lawFirm->name);
-        $this->assertSame('PENDING', $user->supervisingLawyer->lawFirm->verification_status);
+        $firm = $user->supervisingLawyer->lawFirm;
+        $this->assertSame('Kantor Uji Coba', $firm->name);
+        $this->assertSame('PENDING', $firm->verification_status);
+        $this->assertSame('31.73.05', $firm->kecamatan_kode);
         $this->assertSame(3, LawFirm::first()->checklistItems()->count());
     }
 }

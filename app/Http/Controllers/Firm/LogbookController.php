@@ -16,6 +16,8 @@ class LogbookController extends Controller
 {
     public function index(Request $request): View
     {
+        abort_unless(config('features.logbook'), 404);
+
         $pendamping = Auth::user()->supervisingLawyer;
         $calonList = $pendamping->lawFirm->candidateAdvocates()->with('user')->get();
 
@@ -53,6 +55,7 @@ class LogbookController extends Controller
 
     public function setujui(LogbookEntry $entry): RedirectResponse
     {
+        abort_unless(config('features.logbook'), 404);
         $this->authorizeEntry($entry);
         $entry->update(['status' => 'APPROVED', 'revision_notes' => null]);
 
@@ -61,6 +64,7 @@ class LogbookController extends Controller
 
     public function revisi(Request $request, LogbookEntry $entry): RedirectResponse
     {
+        abort_unless(config('features.logbook'), 404);
         $this->authorizeEntry($entry);
         $data = $request->validate(['revision_notes' => ['nullable', 'string', 'max:500']]);
         $entry->update(['status' => 'REVISION', 'revision_notes' => $data['revision_notes'] ?? 'Perlu direvisi oleh calon advokat.']);
@@ -70,6 +74,7 @@ class LogbookController extends Controller
 
     public function tandatanganiSemua(MonthlyLogbookSummary $monthlyLogbookSummary): RedirectResponse
     {
+        abort_unless(config('features.logbook'), 404);
         $pendamping = Auth::user()->supervisingLawyer;
         $this->authorizeCandidate($monthlyLogbookSummary->candidateAdvocate, $pendamping);
 

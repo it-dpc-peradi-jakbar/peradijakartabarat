@@ -16,6 +16,7 @@ class PelamarController extends Controller
         $firm = $pendamping->lawFirm;
 
         $internshipApplications = InternshipApplication::whereHas('jobPosting', fn ($q) => $q->where('law_firm_id', $firm->id))
+            ->whereHas('candidateAdvocate.matchedLawFirms', fn ($q) => $q->where('law_firms.id', $firm->id))
             ->where('status', '!=', InternshipApplication::STATUS_REJECTED)
             ->with(['candidateAdvocate.user', 'jobPosting'])
             ->orderByDesc('applied_on')
