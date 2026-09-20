@@ -22,9 +22,12 @@ class DashboardController extends Controller
             ->whereIn('status', ['SUBMITTED', 'CV_REVIEW', 'INTERVIEW'])
             ->count();
 
-        $logbookBelumTtd = LogbookEntry::whereIn('candidate_advocate_id', $firm->candidateAdvocates()->pluck('id'))
-            ->where('status', 'PENDING_SIGNATURE')
-            ->count();
+        $logbookBelumTtd = 0;
+        if (config('features.logbook')) {
+            $logbookBelumTtd = LogbookEntry::whereIn('candidate_advocate_id', $firm->candidateAdvocates()->pluck('id'))
+                ->where('status', 'PENDING_SIGNATURE')
+                ->count();
+        }
 
         $mendekatiSelesai = $firm->candidateAdvocates()
             ->where('membership_status', 'ACTIVE')
@@ -59,26 +62,30 @@ class DashboardController extends Controller
         }
 
         $pemagang = $firm->candidateAdvocates()->with('user')->get()->map(function ($ca) {
-            $lastEntry = $ca->logbookEntries()->latest('entry_date')->first();
-            if (! $lastEntry) {
-                $logStatus = 'Belum ada entri';
-                $variant = 'mute';
-            } elseif ($lastEntry->entry_date->diffInDays(now()) > 7) {
-                $logStatus = 'Terlambat '.$lastEntry->entry_date->diffInDays(now()).' hari';
-                $variant = 'bad';
-            } elseif ($ca->logbookEntries()->where('status', 'PENDING_SIGNATURE')->exists()) {
-                $logStatus = 'Menunggu ttd';
-                $variant = 'wait';
-            } else {
-                $logStatus = 'Lengkap';
-                $variant = 'ok';
+            $row = [
+                'ca' => $ca,
+                'logStatus' => null,
+                'variant' => 'mute',
+            ];
+            if (! config('features.logbook')) {
+                return $row;
             }
 
-            return [
-                'ca' => $ca,
-                'logStatus' => $logStatus,
-                'variant' => $variant,
-            ];
+            $lastEntry = $ca->logbookEntries()->latest('entry_date')->first();
+            if (! $lastEntry) {
+                $row['logStatus'] = 'Belum ada entri';
+            } elseif ($lastEntry->entry_date->diffInDays(now()) > 7) {
+                $row['logStatus'] = 'Terlambat '.$lastEntry->entry_date->diffInDays(now()).' hari';
+                $row['variant'] = 'bad';
+            } elseif ($ca->logbookEntries()->where('status', 'PENDING_SIGNATURE')->exists()) {
+                $row['logStatus'] = 'Menunggu ttd';
+                $row['variant'] = 'wait';
+            } else {
+                $row['logStatus'] = 'Lengkap';
+                $row['variant'] = 'ok';
+            }
+
+            return $row;
         });
 
         return view('firm.dashboard', [

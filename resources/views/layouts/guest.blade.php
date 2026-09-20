@@ -44,7 +44,7 @@
                     <p class="text-xs text-muted-foreground mt-2">Kantong Magang Advokat</p>
                 </div>
 
-                <div class="w-full max-w-md sm:max-w-lg app-card app-guest-enter px-6 py-8 sm:px-8 sm:py-9 max-h-[min(90vh,900px)] overflow-y-auto">
+                <div class="w-full max-w-md sm:max-w-lg app-card app-guest-enter px-6 py-8 sm:px-8 sm:py-9">
                     {{ $slot }}
                 </div>
             </div>

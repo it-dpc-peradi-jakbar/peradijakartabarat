@@ -33,12 +33,19 @@ class DashboardController extends Controller
         $disetujui = $ca->logbookEntries()->where('status', 'APPROVED')->count();
         $kepatuhan = $totalLog > 0 ? (int) round(($disetujui / $totalLog) * 100) : 0;
 
-        $stats = [
-            ['value' => $totalLog, 'label' => 'Entri logbook tercatat'],
-            ['value' => $kepatuhan.'%', 'label' => 'Kepatuhan pengisian'],
-            ['value' => $ca->monthlyLogbookSummaries()->where('status', 'SIGNED')->count(), 'label' => 'Rekap bulanan ditandatangani'],
-            ['value' => $ca->monthlyLogbookSummaries()->where('status', 'PENDING_SIGNATURE')->count(), 'label' => 'Menunggu tanda tangan'],
-        ];
+        $stats = config('features.logbook')
+            ? [
+                ['value' => $totalLog, 'label' => 'Entri logbook tercatat'],
+                ['value' => $kepatuhan.'%', 'label' => 'Kepatuhan pengisian'],
+                ['value' => $ca->monthlyLogbookSummaries()->where('status', 'SIGNED')->count(), 'label' => 'Rekap bulanan ditandatangani'],
+                ['value' => $ca->monthlyLogbookSummaries()->where('status', 'PENDING_SIGNATURE')->count(), 'label' => 'Menunggu tanda tangan'],
+            ]
+            : [
+                ['value' => $ca->internshipApplications()->count(), 'label' => 'Lamaran terkirim'],
+                ['value' => $ca->verification_status === 'VERIFIED' ? 'Ya' : 'Belum', 'label' => 'Verifikasi admisi'],
+                ['value' => $ca->bulanBerjalan().'/'.$ca->internship_months, 'label' => 'Bulan magang'],
+                ['value' => $ca->lawFirm->name ?? '—', 'label' => 'Penempatan'],
+            ];
 
         return view('candidate.dashboard', [
             'ca' => $ca,

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
@@ -24,6 +25,10 @@ class CandidateAdvocate extends Model
         'candidate_code',
         'national_id_number',
         'university',
+        'address',
+        'provinsi_kode',
+        'kabupaten_kota_kode',
+        'kecamatan_kode',
         'gpa',
         'bar_exam_cohort',
         'bar_exam_graduation_year',
@@ -84,6 +89,27 @@ class CandidateAdvocate extends Model
     public function checklistItems(): MorphMany
     {
         return $this->morphMany(VerificationChecklist::class, 'checkable');
+    }
+
+    public function matchedLawFirms(): BelongsToMany
+    {
+        return $this->belongsToMany(LawFirm::class, 'candidate_law_firm_matches')
+            ->withPivot('matched_by')
+            ->withTimestamps();
+    }
+
+    public function isMatchedToFirm(int $firmId): bool
+    {
+        return $this->matchedLawFirms()->where('law_firms.id', $firmId)->exists();
+    }
+
+    public function wilayahLabel(): string
+    {
+        return \App\Support\WilayahHierarchy::label(
+            $this->provinsi_kode,
+            $this->kabupaten_kota_kode,
+            $this->kecamatan_kode
+        );
     }
 
     public function canApplyForInternship(): bool

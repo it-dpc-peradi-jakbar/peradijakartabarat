@@ -62,10 +62,12 @@
                             <div class="h-full bg-primary rounded-full" style="width: {{ $row['ca']->progresPersen() }}%"></div>
                         </div>
                     </div>
+                    @if (config('features.logbook'))
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-muted-foreground">Logbook bulan ini</span>
                         <x-tag :variant="$row['variant']">{{ $row['logStatus'] }}</x-tag>
                     </div>
+                    @endif
                 </div>
             @empty
                 <p class="p-8 text-center text-sm text-muted-foreground">Belum ada pemagang aktif.</p>
@@ -79,7 +81,9 @@
                         <th>Nama</th>
                         <th>Bidang</th>
                         <th>Progres</th>
+                        @if (config('features.logbook'))
                         <th>Logbook bulan ini</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -96,10 +100,12 @@
                                 </div>
                                 <p class="text-xs text-muted-foreground mt-1">bulan {{ $row['ca']->bulanBerjalan() }}/{{ $row['ca']->internship_months }}</p>
                             </td>
+                            @if (config('features.logbook'))
                             <td><x-tag :variant="$row['variant']">{{ $row['logStatus'] }}</x-tag></td>
+                            @endif
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="py-8 text-center text-muted-foreground">Belum ada pemagang aktif.</td></tr>
+                        <tr><td colspan="{{ config('features.logbook') ? 4 : 3 }}" class="py-8 text-center text-muted-foreground">Belum ada pemagang aktif.</td></tr>
                     @endforelse
                 </tbody>
             </table>

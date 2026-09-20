@@ -1,13 +1,13 @@
 <x-layout
     crumb="Calon Advokat"
     title="Cari lowongan magang"
-    subtitle="Hanya kantor hukum terverifikasi Admin DPC dengan kuota bimbingan tersisa yang dapat menerima lamaran."
+    subtitle="Lowongan hanya dari kantor hukum yang sudah dicocokkan Admin DPC untuk Anda."
     :menu="\App\Support\SidebarMenu::candidate('lowongan')"
     :user-meta="Auth::user()->candidateAdvocate->candidate_code.' · Alumni Lulus UPA'"
 >
     @if (! $canApplyForInternship)
         <div class="rounded-xl border border-line bg-muted px-4 py-3 text-sm text-ink-secondary leading-relaxed" role="status">
-            Lamaran magang baru bisa diajukan setelah verifikasi admisi disetujui Admin DPC. Anda tetap bisa melihat lowongan di bawah.
+            Lamaran magang baru bisa diajukan setelah verifikasi admisi disetujui Admin DPC.
             <a href="{{ route('candidate.verification') }}" class="text-primary font-medium underline underline-offset-2">Buka Verifikasi Admisi</a>
         </div>
     @endif
@@ -18,6 +18,11 @@
         </div>
     @endif
 
+    @if ($awaitingMatch)
+        <x-card class="p-8 text-center text-sm text-[#7a7d8b] leading-relaxed">
+            Menunggu pencocokan Admin DPC. Lowongan magang akan tampil setelah Sekretariat memasangkan Anda dengan kantor hukum.
+        </x-card>
+    @else
     <form method="GET" class="flex flex-col gap-3">
         <input
             type="text" name="q" value="{{ $keyword }}" placeholder="Cari kantor hukum atau kata kunci"
@@ -42,6 +47,9 @@
                     <div class="flex items-center gap-2 flex-wrap">
                         <p class="font-serif text-lg text-[#0d2a5c]">{{ $jobPosting->lawFirm->name }}</p>
                         <x-tag variant="ok">Terverifikasi DPC</x-tag>
+                        @if ($jobPosting->provides_transport)
+                            <x-tag variant="info">Uang transport</x-tag>
+                        @endif
                     </div>
                     <p class="text-sm font-medium mt-1">{{ $jobPosting->title }}</p>
                     <p class="text-sm text-[#5b5d68] mt-1">{{ $jobPosting->description }}</p>
@@ -70,4 +78,5 @@
             <x-card class="p-8 text-center text-sm text-[#7a7d8b]">Tidak ada lowongan yang cocok dengan pencarianmu.</x-card>
         @endforelse
     </div>
+    @endif
 </x-layout>

@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('styles')
 </head>
 <body class="bg-surface text-ink font-sans antialiased">
     <div x-data="{ navOpen: false }" class="min-h-screen md:grid md:grid-cols-[260px_minmax(0,1fr)]">
@@ -144,5 +145,6 @@
             </main>
         </div>
     </div>
+    @stack('scripts')
 </body>
 </html>

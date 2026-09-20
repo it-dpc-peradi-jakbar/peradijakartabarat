@@ -30,6 +30,14 @@
             </div>
         </div>
 
+        <div>
+            <x-input-label for="address" value="Alamat" />
+            <x-text-input id="address" class="block mt-1.5 w-full" type="text" name="address" :value="old('address')" required autocomplete="street-address" placeholder="Contoh: Jl. Panjang No. 12, Kebon Jeruk" />
+            <x-input-error :messages="$errors->get('address')" class="mt-2" />
+        </div>
+
+        <x-wilayah-selects />
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <x-input-label for="password" value="Kata sandi" />

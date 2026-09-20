@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
@@ -14,6 +15,9 @@ class LawFirm extends Model
     protected $fillable = [
         'name',
         'address',
+        'provinsi_kode',
+        'kabupaten_kota_kode',
+        'kecamatan_kode',
         'ministry_registration_number',
         'is_equivalent_law_firm',
         'max_quota',
@@ -44,6 +48,22 @@ class LawFirm extends Model
     public function checklistItems(): MorphMany
     {
         return $this->morphMany(VerificationChecklist::class, 'checkable');
+    }
+
+    public function matchedCandidates(): BelongsToMany
+    {
+        return $this->belongsToMany(CandidateAdvocate::class, 'candidate_law_firm_matches')
+            ->withPivot('matched_by')
+            ->withTimestamps();
+    }
+
+    public function wilayahLabel(): string
+    {
+        return \App\Support\WilayahHierarchy::label(
+            $this->provinsi_kode,
+            $this->kabupaten_kota_kode,
+            $this->kecamatan_kode
+        );
     }
 
     public function kuotaTerpakai(): int

@@ -35,13 +35,14 @@ class InternshipApplicationTest extends TestCase
     public function test_unverified_candidate_cannot_submit_internship_application(): void
     {
         $user = User::factory()->create(['role' => 'calon_advokat']);
-        CandidateAdvocate::create([
+        $ca = CandidateAdvocate::create([
             'user_id' => $user->id,
             'candidate_code' => 'CA-2026-0099',
             'membership_status' => 'ACTIVE',
             'verification_status' => 'PENDING',
         ]);
         $jobPosting = $this->verifiedJobPosting();
+        $ca->matchedLawFirms()->attach($jobPosting->law_firm_id);
 
         $response = $this->actingAs($user)->post(route('candidate.lowongan.lamar', $jobPosting));
 
@@ -59,6 +60,7 @@ class InternshipApplicationTest extends TestCase
             'verification_status' => 'VERIFIED',
         ]);
         $jobPosting = $this->verifiedJobPosting();
+        $ca->matchedLawFirms()->attach($jobPosting->law_firm_id);
 
         $response = $this->actingAs($user)->post(route('candidate.lowongan.lamar', $jobPosting));
 
@@ -66,5 +68,28 @@ class InternshipApplicationTest extends TestCase
         $this->assertTrue(
             $ca->fresh()->internshipApplications()->where('job_posting_id', $jobPosting->id)->exists()
         );
+    }
+
+    public function test_unmatched_candidate_cannot_apply_and_sees_empty_lowongan(): void
+    {
+        $user = User::factory()->create(['role' => 'calon_advokat']);
+        CandidateAdvocate::create([
+            'user_id' => $user->id,
+            'candidate_code' => 'CA-2026-0101',
+            'membership_status' => 'ACTIVE',
+            'verification_status' => 'VERIFIED',
+        ]);
+        $jobPosting = $this->verifiedJobPosting();
+
+        $this->actingAs($user)
+            ->get(route('candidate.lowongan'))
+            ->assertOk()
+            ->assertSee('Menunggu pencocokan Admin DPC')
+            ->assertDontSee('Kantor Uji');
+
+        $this->actingAs($user)
+            ->post(route('candidate.lowongan.lamar', $jobPosting))
+            ->assertForbidden();
+        $this->assertSame(0, InternshipApplication::count());
     }
 }

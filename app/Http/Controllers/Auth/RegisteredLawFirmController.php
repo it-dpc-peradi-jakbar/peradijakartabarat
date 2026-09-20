@@ -36,11 +36,24 @@ class RegisteredLawFirmController extends Controller
             'bar_membership_number' => ['required', 'string', 'max:64'],
             'years_of_experience' => ['nullable', 'integer', 'min:0', 'max:60'],
         ]);
+        $validated = array_merge($validated, $request->validate(\App\Support\WilayahHierarchy::rules()));
+        if (! \App\Support\WilayahHierarchy::isConsistent(
+            $validated['provinsi_kode'],
+            $validated['kabupaten_kota_kode'],
+            $validated['kecamatan_kode']
+        )) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'kecamatan_kode' => 'Kombinasi provinsi, kota/kabupaten, dan kecamatan tidak valid.',
+            ]);
+        }
 
         $user = DB::transaction(function () use ($validated) {
             $firm = LawFirm::create([
                 'name' => $validated['firm_name'],
                 'address' => $validated['firm_address'],
+                'provinsi_kode' => $validated['provinsi_kode'],
+                'kabupaten_kota_kode' => $validated['kabupaten_kota_kode'],
+                'kecamatan_kode' => $validated['kecamatan_kode'],
                 'ministry_registration_number' => $validated['ministry_registration_number'] ?? null,
                 'is_equivalent_law_firm' => (bool) ($validated['is_equivalent_law_firm'] ?? false),
                 'max_quota' => 10,
