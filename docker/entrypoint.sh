@@ -59,6 +59,7 @@ try {
     sleep 2
 done
 
+php artisan storage:link --force --no-interaction || true
 php artisan migrate --force --no-interaction
 php artisan wilayah:import --no-interaction
 

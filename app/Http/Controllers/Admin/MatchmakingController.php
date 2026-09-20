@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CandidateAdvocate;
+use App\Models\JobPosting;
 use App\Models\LawFirm;
 use App\Models\Wilayah;
-use App\Support\WilayahHierarchy;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -20,7 +20,7 @@ class MatchmakingController extends Controller
 
         $candidates = CandidateAdvocate::query()
             ->where('verification_status', 'VERIFIED')
-            ->with(['user', 'matchedLawFirms'])
+            ->with(['user', 'matchedJobPostings.lawFirm'])
             ->when($keyword !== '', function ($query) use ($keyword) {
                 $query->where(function ($inner) use ($keyword) {
                     $inner->where('candidate_code', 'like', "%{$keyword}%")
@@ -29,14 +29,14 @@ class MatchmakingController extends Controller
                             ->orWhere('email', 'like', "%{$keyword}%"));
                 });
             })
-            ->when($filter === 'unmatched', fn ($q) => $q->whereDoesntHave('matchedLawFirms'))
-            ->when($filter === 'matched', fn ($q) => $q->whereHas('matchedLawFirms'))
+            ->when($filter === 'unmatched', fn ($q) => $q->whereDoesntHave('matchedJobPostings'))
+            ->when($filter === 'matched', fn ($q) => $q->whereHas('matchedJobPostings'))
             ->orderByDesc('created_at')
             ->get();
 
         $stats = [
             ['value' => (string) CandidateAdvocate::where('verification_status', 'VERIFIED')->count(), 'label' => 'Calon terverifikasi'],
-            ['value' => (string) CandidateAdvocate::where('verification_status', 'VERIFIED')->whereDoesntHave('matchedLawFirms')->count(), 'label' => 'Belum di-match'],
+            ['value' => (string) CandidateAdvocate::where('verification_status', 'VERIFIED')->whereDoesntHave('matchedJobPostings')->count(), 'label' => 'Belum di-match'],
             ['value' => (string) LawFirm::where('verification_status', 'VERIFIED')->count(), 'label' => 'Kantor terverifikasi'],
         ];
 
@@ -52,22 +52,33 @@ class MatchmakingController extends Controller
     {
         abort_unless($candidateAdvocate->verification_status === 'VERIFIED', 404);
 
-        $candidateAdvocate->load(['user', 'matchedLawFirms']);
-        $selectedIds = $candidateAdvocate->matchedLawFirms->pluck('id')->all();
-        $firms = LawFirm::where('verification_status', 'VERIFIED')
-            ->orderBy('name')
+        $candidateAdvocate->load(['user', 'matchedJobPostings']);
+        $selectedIds = $candidateAdvocate->matchedJobPostings->pluck('id')->all();
+
+        $jobs = JobPosting::query()
+            ->where('status', 'ACTIVE')
+            ->whereHas('lawFirm', fn ($q) => $q->where('verification_status', 'VERIFIED'))
+            ->with('lawFirm')
+            ->orderBy('title')
             ->get()
-            ->sortBy(fn (LawFirm $firm) => (in_array($firm->id, $selectedIds, true) ? '0' : '1').$firm->name)
+            ->sortBy(function (JobPosting $job) use ($candidateAdvocate, $selectedIds) {
+                $selected = in_array($job->id, $selectedIds, true) ? '0' : '1';
+                $fit = $candidateAdvocate->jobFitsPreferences($job) ? '0' : '1';
+
+                return $selected.$fit.$job->lawFirm->name.$job->title;
+            })
             ->values();
-        $wilayahNames = Wilayah::namaMap($firms->flatMap(fn (LawFirm $firm) => [
-            $firm->kecamatan_kode,
-            $firm->kabupaten_kota_kode,
-            $firm->provinsi_kode,
+
+        $wilayahNames = Wilayah::namaMap($jobs->flatMap(fn (JobPosting $job) => [
+            $job->kabupaten_kota_kode,
+            $job->kabupaten_kota_kode ? substr($job->kabupaten_kota_kode, 0, 2) : null,
+            $candidateAdvocate->kabupaten_kota_kode,
+            $candidateAdvocate->provinsi_kode,
         ])->all());
 
         return view('admin.matchmaking-edit', [
             'ca' => $candidateAdvocate,
-            'firms' => $firms,
+            'jobs' => $jobs,
             'wilayahNames' => $wilayahNames,
             'selectedIds' => $selectedIds,
         ]);
@@ -78,21 +89,23 @@ class MatchmakingController extends Controller
         abort_unless($candidateAdvocate->verification_status === 'VERIFIED', 404);
 
         $data = $request->validate([
-            'law_firm_ids' => ['nullable', 'array'],
-            'law_firm_ids.*' => ['integer', 'exists:law_firms,id'],
+            'job_posting_ids' => ['nullable', 'array'],
+            'job_posting_ids.*' => ['integer', 'exists:job_postings,id'],
         ]);
 
-        $firmIds = collect($data['law_firm_ids'] ?? [])
+        $jobIds = collect($data['job_posting_ids'] ?? [])
             ->map(fn ($id) => (int) $id)
             ->unique()
             ->values();
 
-        $allowed = LawFirm::where('verification_status', 'VERIFIED')
-            ->whereIn('id', $firmIds)
+        $allowed = JobPosting::query()
+            ->where('status', 'ACTIVE')
+            ->whereHas('lawFirm', fn ($q) => $q->where('verification_status', 'VERIFIED'))
+            ->whereIn('id', $jobIds)
             ->pluck('id');
 
         $sync = $allowed->mapWithKeys(fn ($id) => [$id => ['matched_by' => $request->user()->id]])->all();
-        $candidateAdvocate->matchedLawFirms()->sync($sync);
+        $candidateAdvocate->matchedJobPostings()->sync($sync);
 
         return redirect()
             ->route('admin.matchmaking')

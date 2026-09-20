@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Banner;
 use App\Models\SupervisingLawyer;
 use App\Models\FinalAudit;
 use App\Models\OathDocument;
@@ -92,22 +93,26 @@ class DatabaseSeeder extends Seeder
             'description' => 'Pendampingan perkara PKPU dan sengketa kontrak di PN Jakarta Barat.',
             'practice_areas' => ['Litigasi', 'Kepailitan', 'Full-time'], 'quota' => 10,
             'provides_transport' => true,
+            'kabupaten_kota_kode' => $jakbar['kabupaten_kota_kode'],
         ]);
         JobPosting::create([
             'law_firm_id' => $ardiansyah->id, 'title' => 'Magang Calon Advokat — Hukum Keluarga',
             'description' => 'Riset dan penyusunan gugatan perceraian, waris, dan permohonan penetapan.',
             'practice_areas' => ['Perdata', 'Keluarga', 'Hybrid'], 'quota' => 10,
+            'kabupaten_kota_kode' => $jakbar['kabupaten_kota_kode'],
         ]);
         JobPosting::create([
             'law_firm_id' => $lbhTrisakti->id, 'title' => 'Magang Calon Advokat — Bantuan Hukum',
             'description' => 'Pendampingan klien prodeo. Setara kantor advokat sesuai Peraturan PERADI No. 1/2015.',
             'practice_areas' => ['Pidana', 'Prodeo', 'Full-time'], 'quota' => 10,
+            'kabupaten_kota_kode' => $jakbar['kabupaten_kota_kode'],
         ]);
         $jobPostingWibisono = JobPosting::create([
             'law_firm_id' => $wibisono->id, 'title' => 'Magang Calon Advokat — Litigasi Perdata & Kepailitan',
             'description' => 'Pendampingan perkara litigasi perdata dan kepailitan bersama advokat pendamping.',
             'practice_areas' => ['Litigasi', 'Korporasi', 'Full-time'], 'quota' => 10,
             'provides_transport' => true,
+            'kabupaten_kota_kode' => $jakbar['kabupaten_kota_kode'],
         ]);
 
         // ---- Helper to create a calon advokat + login user ----
@@ -320,6 +325,14 @@ class DatabaseSeeder extends Seeder
             'password' => $password, 'role' => 'admin_dpc', 'email_verified_at' => now(),
         ]);
 
+        Banner::create([
+            'created_by_user_id' => User::where('email', 'admin@peradijakbar.test')->value('id'),
+            'target' => Banner::TARGET_CALON,
+            'title' => 'Pengumuman DPC Jakarta Barat',
+            'body' => '<p>Harap lengkapi verifikasi admisi sebelum mengajukan lamaran magang.</p>',
+            'published_at' => now(),
+        ]);
+
         $this->call(ExtraDemoSeeder::class);
         $this->seedDemoMatches();
     }
@@ -333,11 +346,12 @@ class DatabaseSeeder extends Seeder
         $lbh = LawFirm::where('name', 'LBH Kampus Universitas Trisakti')->firstOrFail();
 
         $attach = function (array $emails, LawFirm $firm) use ($adminId) {
+            $jobIds = $firm->jobPostings()->where('status', 'ACTIVE')->pluck('id');
             $ids = CandidateAdvocate::whereHas('user', fn ($q) => $q->whereIn('email', $emails))->pluck('id');
             foreach ($ids as $id) {
-                CandidateAdvocate::find($id)->matchedLawFirms()->syncWithoutDetaching([
-                    $firm->id => ['matched_by' => $adminId],
-                ]);
+                CandidateAdvocate::find($id)->matchedJobPostings()->syncWithoutDetaching(
+                    $jobIds->mapWithKeys(fn ($jobId) => [$jobId => ['matched_by' => $adminId]])->all()
+                );
             }
         };
 

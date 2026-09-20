@@ -5,6 +5,8 @@
     :menu="\App\Support\SidebarMenu::firm('dashboard')"
     :user-meta="'Advokat Pendamping · '.$firm->name"
 >
+    <x-banners :banners="$banners" />
+
     <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-5 items-start">
         <x-card class="p-6">
             <p class="text-[11px] tracking-[0.14em] uppercase text-[#7a7d8b]">Kuota bimbingan gabungan</p>

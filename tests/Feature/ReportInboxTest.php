@@ -21,7 +21,7 @@ class ReportInboxTest extends TestCase
         [$user, $ca] = $this->makeCalon();
         $matched = $this->verifiedFirm('Kantor Match');
         $unmatched = $this->verifiedFirm('Kantor Lain');
-        $ca->matchedLawFirms()->attach($matched->id);
+        $ca->matchedJobPostings()->attach($this->jobFor($matched)->id);
 
         $this->actingAs($user)
             ->post(route('candidate.report.store'), [
@@ -37,7 +37,7 @@ class ReportInboxTest extends TestCase
     {
         [$user, $ca] = $this->makeCalon('Calon Lapor');
         $firm = $this->verifiedFirm('Kantor Match');
-        $ca->matchedLawFirms()->attach($firm->id);
+        $ca->matchedJobPostings()->attach($this->jobFor($firm)->id);
 
         $this->actingAs($user)
             ->post(route('candidate.report.store'), [
@@ -92,7 +92,7 @@ class ReportInboxTest extends TestCase
         ]);
 
         [, $matchedNoApply] = $this->makeCalon('Calon Matched');
-        $matchedNoApply->matchedLawFirms()->attach($firm->id);
+        $matchedNoApply->matchedJobPostings()->attach($job->id);
 
         $this->actingAs($firmUser)
             ->post(route('firm.report.store'), [
@@ -162,6 +162,18 @@ class ReportInboxTest extends TestCase
             'name' => $name,
             'verification_status' => 'VERIFIED',
             'verified_at' => now(),
+        ]);
+    }
+
+    private function jobFor(LawFirm $firm): JobPosting
+    {
+        return JobPosting::create([
+            'law_firm_id' => $firm->id,
+            'title' => 'Magang '.$firm->name,
+            'description' => 'Deskripsi',
+            'practice_areas' => ['Litigasi'],
+            'quota' => 5,
+            'status' => 'ACTIVE',
         ]);
     }
 }

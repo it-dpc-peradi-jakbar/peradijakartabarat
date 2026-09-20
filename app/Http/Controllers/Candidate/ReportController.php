@@ -17,8 +17,9 @@ class ReportController extends Controller
     public function create(): View
     {
         $ca = Auth::user()->candidateAdvocate;
-        $firms = $ca->matchedLawFirms()
+        $firms = LawFirm::query()
             ->where('verification_status', 'VERIFIED')
+            ->whereIn('id', $ca->matchedJobPostings()->pluck('job_postings.law_firm_id'))
             ->orderBy('name')
             ->get();
 

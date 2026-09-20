@@ -21,6 +21,7 @@ class SidebarMenu
         $items = [
             ['label' => 'Dashboard', 'route' => route('candidate.dashboard'), 'active' => $active === 'dashboard'],
             ['label' => 'Verifikasi Admisi', 'route' => route('candidate.verification'), 'active' => $active === 'verification', 'badge' => $verificationBadge ?: null],
+            ['label' => 'Preferensi magang', 'route' => route('candidate.preferences.edit'), 'active' => $active === 'preferences'],
             ['label' => 'Cari Lowongan', 'route' => route('candidate.lowongan'), 'active' => $active === 'lowongan'],
             ['label' => 'Lamaran Saya', 'route' => route('candidate.lamaran'), 'active' => $active === 'lamaran'],
             ['label' => 'Laporan', 'route' => route('candidate.report.create'), 'active' => $active === 'report'],
@@ -48,7 +49,7 @@ class SidebarMenu
         if ($pendamping) {
             $firmId = $pendamping->law_firm_id;
             $pelamarBadge = InternshipApplication::whereHas('jobPosting', fn ($q) => $q->where('law_firm_id', $firmId))
-                ->whereHas('candidateAdvocate.matchedLawFirms', fn ($q) => $q->where('law_firms.id', $firmId))
+                ->matchedToJob()
                 ->whereIn('status', ['SUBMITTED', 'CV_REVIEW', 'INTERVIEW'])
                 ->count();
         }
@@ -77,6 +78,7 @@ class SidebarMenu
             ['label' => 'Verifikasi', 'route' => route('admin.verification'), 'active' => $active === 'verification', 'badge' => $badge ?: null],
             ['label' => 'Pencocokan', 'route' => route('admin.matchmaking'), 'active' => $active === 'matchmaking'],
             ['label' => 'Laporan', 'route' => route('admin.reports.index'), 'active' => $active === 'reports', 'badge' => $reportBadge ?: null],
+            ['label' => 'Pengumuman', 'route' => route('admin.banners.index'), 'active' => $active === 'banners'],
             ['label' => 'Data Terdaftar', 'route' => route('admin.registrants'), 'active' => $active === 'registrants'],
             ['label' => 'Monitoring & Audit', 'route' => route('admin.monitoring'), 'active' => $active === 'monitoring'],
         ];

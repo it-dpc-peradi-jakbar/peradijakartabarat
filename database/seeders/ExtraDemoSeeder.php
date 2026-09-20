@@ -90,6 +90,7 @@ class ExtraDemoSeeder extends Seeder
                 'practice_areas' => ['Pidana', 'Prodeo', 'Full-time'],
                 'quota' => 4,
                 'status' => 'ACTIVE',
+                'kabupaten_kota_kode' => WilayahHierarchy::JAKARTA_BARAT_KOTA,
             ]
         );
 

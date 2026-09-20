@@ -46,7 +46,7 @@ class PelamarMatchTest extends TestCase
             'candidate_code' => 'CA-2026-0301',
             'verification_status' => 'VERIFIED',
         ]);
-        $matched->matchedLawFirms()->attach($firm->id);
+        $matched->matchedJobPostings()->attach($job->id);
         InternshipApplication::create([
             'candidate_advocate_id' => $matched->id,
             'job_posting_id' => $job->id,

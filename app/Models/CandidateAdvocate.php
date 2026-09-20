@@ -14,6 +14,8 @@ class CandidateAdvocate extends Model
 {
     use HasFactory;
 
+    public const WORK_REFERENCE_GLOBAL = 'GLOBAL';
+
     protected $attributes = [
         'membership_status' => 'ACTIVE',
         'verification_status' => 'PENDING',
@@ -29,6 +31,8 @@ class CandidateAdvocate extends Model
         'provinsi_kode',
         'kabupaten_kota_kode',
         'kecamatan_kode',
+        'work_reference',
+        'wants_transport',
         'gpa',
         'bar_exam_cohort',
         'bar_exam_graduation_year',
@@ -44,6 +48,8 @@ class CandidateAdvocate extends Model
     protected $casts = [
         'internship_started_on' => 'date',
         'gpa' => 'decimal:2',
+        'work_reference' => 'array',
+        'wants_transport' => 'boolean',
     ];
 
     public function user(): BelongsTo
@@ -91,16 +97,58 @@ class CandidateAdvocate extends Model
         return $this->morphMany(VerificationChecklist::class, 'checkable');
     }
 
-    public function matchedLawFirms(): BelongsToMany
+    public function matchedJobPostings(): BelongsToMany
     {
-        return $this->belongsToMany(LawFirm::class, 'candidate_law_firm_matches')
+        return $this->belongsToMany(JobPosting::class, 'candidate_job_posting_matches')
             ->withPivot('matched_by')
             ->withTimestamps();
     }
 
+    public function isMatchedToJob(int $jobPostingId): bool
+    {
+        return $this->matchedJobPostings()->where('job_postings.id', $jobPostingId)->exists();
+    }
+
     public function isMatchedToFirm(int $firmId): bool
     {
-        return $this->matchedLawFirms()->where('law_firms.id', $firmId)->exists();
+        return $this->matchedJobPostings()->where('job_postings.law_firm_id', $firmId)->exists();
+    }
+
+    public function workReferenceValues(): array
+    {
+        return array_values(array_filter($this->work_reference ?? []));
+    }
+
+    public function wantsAnywhere(): bool
+    {
+        return in_array(self::WORK_REFERENCE_GLOBAL, $this->workReferenceValues(), true);
+    }
+
+    public function jobFitsPreferences(JobPosting $job): bool
+    {
+        $refs = $this->workReferenceValues();
+        if ($this->wantsAnywhere()) {
+            $areaOk = true;
+        } elseif ($refs !== []) {
+            $areaOk = in_array($job->kabupaten_kota_kode, $refs, true);
+        } else {
+            $areaOk = $job->kabupaten_kota_kode === $this->kabupaten_kota_kode;
+        }
+
+        $transportOk = ! $this->wants_transport || $job->provides_transport;
+
+        return $areaOk && $transportOk;
+    }
+
+    public function workReferenceLabel(): string
+    {
+        if ($this->wantsAnywhere()) {
+            return 'Di mana pun';
+        }
+
+        $kota = $this->wilayahLabel();
+
+        return $kota === '—' ? 'Domisili terdaftar' : 'Domisili · '.$kota;
     }
 
     public function wilayahLabel(): string

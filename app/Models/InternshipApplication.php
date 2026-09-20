@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Builder;
 
 class InternshipApplication extends Model
 {
@@ -43,5 +44,15 @@ class InternshipApplication extends Model
     public function jobPosting(): BelongsTo
     {
         return $this->belongsTo(JobPosting::class);
+    }
+
+    public function scopeMatchedToJob(Builder $query): Builder
+    {
+        return $query->whereExists(function ($inner) {
+            $inner->selectRaw('1')
+                ->from('candidate_job_posting_matches')
+                ->whereColumn('candidate_job_posting_matches.candidate_advocate_id', 'internship_applications.candidate_advocate_id')
+                ->whereColumn('candidate_job_posting_matches.job_posting_id', 'internship_applications.job_posting_id');
+        });
     }
 }

@@ -1,7 +1,7 @@
 <x-layout
     crumb="Calon Advokat"
     title="Cari lowongan magang"
-    subtitle="Lowongan hanya dari kantor hukum yang sudah dicocokkan Admin DPC untuk Anda."
+    subtitle="Lowongan hanya dari yang sudah dicocokkan Admin DPC untuk Anda."
     :menu="\App\Support\SidebarMenu::candidate('lowongan')"
     :user-meta="Auth::user()->candidateAdvocate->candidate_code.' · Alumni Lulus UPA'"
 >
