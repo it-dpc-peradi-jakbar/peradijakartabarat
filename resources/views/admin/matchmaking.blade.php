@@ -1,7 +1,7 @@
 <x-layout
     crumb="Admin DPC Jakarta Barat"
     title="Pencocokan magang"
-    subtitle="Pasangkan calon terverifikasi dengan kantor hukum. Calon hanya melihat lowongan dari kantor yang di-match."
+    subtitle="Pasangkan calon terverifikasi dengan lowongan. Calon hanya melihat lowongan yang di-match."
     :menu="\App\Support\SidebarMenu::admin('matchmaking')"
     user-meta="Admin Bidang Magang"
 >
@@ -39,8 +39,8 @@
                 <thead class="bg-muted/60 text-left text-xs uppercase tracking-wide text-muted-foreground">
                     <tr>
                         <th class="px-5 py-3 font-semibold">Calon advokat</th>
-                        <th class="px-5 py-3 font-semibold">Wilayah</th>
-                        <th class="px-5 py-3 font-semibold">Kantor di-match</th>
+                        <th class="px-5 py-3 font-semibold">Preferensi</th>
+                        <th class="px-5 py-3 font-semibold">Lowongan di-match</th>
                         <th class="px-5 py-3 font-semibold"></th>
                     </tr>
                 </thead>
@@ -51,14 +51,17 @@
                                 <p class="font-medium">{{ $ca->user->name }}</p>
                                 <p class="text-xs text-muted-foreground mt-0.5">{{ $ca->candidate_code }}</p>
                             </td>
-                            <td class="px-5 py-4 text-muted-foreground text-xs leading-relaxed">{{ $ca->wilayahLabel() }}</td>
+                            <td class="px-5 py-4 text-muted-foreground text-xs leading-relaxed">
+                                <p>{{ $ca->workReferenceLabel() }}</p>
+                                <p class="mt-0.5">{{ $ca->wants_transport ? 'Butuh uang transport' : 'Transport tidak wajib' }}</p>
+                            </td>
                             <td class="px-5 py-4">
-                                @if ($ca->matchedLawFirms->isEmpty())
+                                @if ($ca->matchedJobPostings->isEmpty())
                                     <x-tag variant="wait">Belum di-match</x-tag>
                                 @else
                                     <ul class="flex flex-col gap-1">
-                                        @foreach ($ca->matchedLawFirms as $firm)
-                                            <li class="text-sm">{{ $firm->name }}</li>
+                                        @foreach ($ca->matchedJobPostings as $job)
+                                            <li class="text-sm">{{ $job->title }} <span class="text-xs text-muted-foreground">· {{ $job->lawFirm->name }}</span></li>
                                         @endforeach
                                     </ul>
                                 @endif

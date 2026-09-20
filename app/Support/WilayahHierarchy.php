@@ -49,6 +49,27 @@ final class WilayahHierarchy
     }
 
     /**
+     * @return array<string, list<mixed>>
+     */
+    public static function kabupatenRules(): array
+    {
+        return [
+            'provinsi_kode' => ['required', 'string', 'size:2', Rule::exists('wilayah', 'kode')->where('level', 'provinsi')],
+            'kabupaten_kota_kode' => ['required', 'string', 'size:5', Rule::exists('wilayah', 'kode')->where('level', 'kabupaten_kota')],
+        ];
+    }
+
+    public static function kabupatenIsConsistent(?string $provinsi, ?string $kabupaten): bool
+    {
+        if (! is_string($provinsi) || ! is_string($kabupaten)) {
+            return false;
+        }
+
+        return str_starts_with($kabupaten, $provinsi.'.')
+            && Wilayah::query()->whereIn('kode', [$provinsi, $kabupaten])->count() === 2;
+    }
+
+    /**
      * @param  array<string, string>|null  $names
      */
     public static function label(?string $provinsi, ?string $kabupaten, ?string $kecamatan, ?array $names = null): string

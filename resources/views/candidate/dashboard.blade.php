@@ -5,6 +5,8 @@
     :menu="\App\Support\SidebarMenu::candidate('dashboard')"
     :user-meta="$ca->candidate_code.' · Alumni Lulus UPA'"
 >
+    <x-banners :banners="$banners" />
+
     <x-card class="p-6">
         <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div>

@@ -76,11 +76,10 @@ Alpine.data('wilayahSelects', (initial = {}) => ({
     },
 }));
 
-Alpine.data('firmPicker', (calon = {}) => ({
+Alpine.data('jobPicker', () => ({
     q: '',
     area: 'all',
     rev: 0,
-    calon,
     matches(el) {
         this.rev;
         if (el.querySelector('input:checked')) {
@@ -92,14 +91,11 @@ Alpine.data('firmPicker', (calon = {}) => ({
         if (needle && ! name.includes(needle) && ! wilayah.includes(needle)) {
             return false;
         }
-        if (this.area === 'same_kecamatan') {
-            return el.dataset.kecamatan === this.calon.kecamatan;
+        if (this.area === 'fit') {
+            return el.dataset.fits === '1';
         }
-        if (this.area === 'same_kota') {
-            return el.dataset.kota === this.calon.kota;
-        }
-        if (this.area === 'same_provinsi') {
-            return el.dataset.provinsi === this.calon.provinsi;
+        if (this.area === 'outside') {
+            return el.dataset.fits === '0';
         }
 
         return true;

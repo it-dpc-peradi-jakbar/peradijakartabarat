@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
@@ -50,11 +49,12 @@ class LawFirm extends Model
         return $this->morphMany(VerificationChecklist::class, 'checkable');
     }
 
-    public function matchedCandidates(): BelongsToMany
+    public function matchedCandidates()
     {
-        return $this->belongsToMany(CandidateAdvocate::class, 'candidate_law_firm_matches')
-            ->withPivot('matched_by')
-            ->withTimestamps();
+        return CandidateAdvocate::query()->whereHas(
+            'matchedJobPostings',
+            fn ($q) => $q->where('law_firm_id', $this->id)
+        );
     }
 
     public function wilayahLabel(): string

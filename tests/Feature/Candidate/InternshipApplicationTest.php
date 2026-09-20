@@ -42,7 +42,7 @@ class InternshipApplicationTest extends TestCase
             'verification_status' => 'PENDING',
         ]);
         $jobPosting = $this->verifiedJobPosting();
-        $ca->matchedLawFirms()->attach($jobPosting->law_firm_id);
+        $ca->matchedJobPostings()->attach($jobPosting->id);
 
         $response = $this->actingAs($user)->post(route('candidate.lowongan.lamar', $jobPosting));
 
@@ -60,7 +60,7 @@ class InternshipApplicationTest extends TestCase
             'verification_status' => 'VERIFIED',
         ]);
         $jobPosting = $this->verifiedJobPosting();
-        $ca->matchedLawFirms()->attach($jobPosting->law_firm_id);
+        $ca->matchedJobPostings()->attach($jobPosting->id);
 
         $response = $this->actingAs($user)->post(route('candidate.lowongan.lamar', $jobPosting));
 

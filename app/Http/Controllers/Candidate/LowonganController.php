@@ -20,14 +20,14 @@ class LowonganController extends Controller
         $bidangFilter = ['Semua bidang', 'Litigasi', 'Korporasi', 'Prodeo'];
         $filter = in_array($request->query('bidang'), $bidangFilter, true) ? $request->query('bidang') : 'Semua bidang';
 
-        $matchedFirmIds = $ca->matchedLawFirms()->pluck('law_firms.id');
-        $awaitingMatch = $matchedFirmIds->isEmpty();
+        $matchedJobIds = $ca->matchedJobPostings()->pluck('job_postings.id');
+        $awaitingMatch = $matchedJobIds->isEmpty();
 
         $jobPostings = $awaitingMatch
             ? collect()
             : JobPosting::query()
                 ->where('status', 'ACTIVE')
-                ->whereIn('law_firm_id', $matchedFirmIds)
+                ->whereIn('id', $matchedJobIds)
                 ->whereHas('lawFirm', fn ($q) => $q->where('verification_status', 'VERIFIED'))
                 ->with('lawFirm')
                 ->when($filter !== 'Semua bidang', fn ($q) => $q->whereJsonContains('practice_areas', $filter))
@@ -54,7 +54,7 @@ class LowonganController extends Controller
     {
         $ca = Auth::user()->candidateAdvocate;
 
-        abort_unless($ca->isMatchedToFirm($jobPosting->law_firm_id), 403);
+        abort_unless($ca->isMatchedToJob($jobPosting->id), 403);
 
         if (! $ca->canApplyForInternship()) {
             throw ValidationException::withMessages([
