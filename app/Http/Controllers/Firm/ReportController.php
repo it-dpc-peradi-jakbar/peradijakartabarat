@@ -19,7 +19,7 @@ class ReportController extends Controller
     {
         $firm = Auth::user()->supervisingLawyer->lawFirm;
         $candidates = CandidateAdvocate::query()
-            ->whereHas('matchedLawFirms', fn ($q) => $q->where('law_firms.id', $firm->id))
+            ->whereHas('matchedJobPostings', fn ($q) => $q->where('law_firm_id', $firm->id))
             ->whereHas('internshipApplications', function ($q) use ($firm) {
                 $q->where('status', '!=', InternshipApplication::STATUS_REJECTED)
                     ->whereHas('jobPosting', fn ($q) => $q->where('law_firm_id', $firm->id));

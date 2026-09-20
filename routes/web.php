@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\BannerController as AdminBannerController;
 use App\Http\Controllers\Admin\MatchmakingController as AdminMatchmakingController;
 use App\Http\Controllers\Admin\MonitoringController as AdminMonitoringController;
 use App\Http\Controllers\Admin\RegistrantsController as AdminRegistrantsController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Candidate\DashboardController as CandidateDashboardCont
 use App\Http\Controllers\Candidate\LamaranController;
 use App\Http\Controllers\Candidate\LogbookController;
 use App\Http\Controllers\Candidate\LowonganController;
+use App\Http\Controllers\Candidate\PreferenceController;
 use App\Http\Controllers\Candidate\ReportController as CandidateReportController;
 use App\Http\Controllers\Candidate\VerificationController as CandidateVerificationController;
 use App\Http\Controllers\DashboardController;
@@ -52,6 +54,8 @@ Route::middleware(['auth', 'role:calon_advokat'])->prefix('candidate')->name('ca
     Route::get('/berkas', [BerkasController::class, 'index'])->name('berkas');
     Route::get('/verification', [CandidateVerificationController::class, 'index'])->name('verification');
     Route::post('/verification/{verificationChecklist}/link', [CandidateVerificationController::class, 'storeLink'])->name('verification.link');
+    Route::get('/preferences', [PreferenceController::class, 'edit'])->name('preferences.edit');
+    Route::patch('/preferences', [PreferenceController::class, 'update'])->name('preferences.update');
 });
 
 Route::middleware('auth')->group(function () {
@@ -67,7 +71,8 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:law_firm'])->prefix('firm')->name('firm.')->group(function () {
     Route::get('/dashboard', [FirmDashboardController::class, 'index'])->name('dashboard');
     Route::get('/lowongan', [FirmLowonganController::class, 'index'])->name('lowongan');
-    Route::patch('/lowongan/{jobPosting}', [FirmLowonganController::class, 'update'])->name('lowongan.update');
+    Route::get('/lowongan/{jobPosting}/edit', [FirmLowonganController::class, 'edit'])->name('lowongan.edit')->whereNumber('jobPosting');
+    Route::patch('/lowongan/{jobPosting}', [FirmLowonganController::class, 'update'])->name('lowongan.update')->whereNumber('jobPosting');
     Route::get('/pelamar', [PelamarController::class, 'index'])->name('pelamar');
     Route::post('/pelamar/{internshipApplication}/terima', [PelamarController::class, 'terima'])->name('pelamar.terima');
     Route::get('/report', [FirmReportController::class, 'create'])->name('report.create');
@@ -93,6 +98,7 @@ Route::middleware(['auth', 'role:admin_dpc'])->prefix('admin')->name('admin.')->
     Route::put('/matchmaking/{candidateAdvocate}', [AdminMatchmakingController::class, 'update'])->name('matchmaking.update');
     Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/{report}', [AdminReportController::class, 'show'])->name('reports.show');
+    Route::resource('banners', AdminBannerController::class)->except(['show']);
 });
 
 require __DIR__.'/auth.php';

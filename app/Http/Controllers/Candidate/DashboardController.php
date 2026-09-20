@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Candidate;
 
 use App\Http\Controllers\Controller;
+use App\Models\Banner;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -51,6 +52,7 @@ class DashboardController extends Controller
             'ca' => $ca,
             'timeline' => $timeline,
             'stats' => $stats,
+            'banners' => Banner::published()->forTarget(Banner::TARGET_CALON)->orderByDesc('published_at')->get(),
         ]);
     }
 }

@@ -2,6 +2,7 @@
     'provinsi' => null,
     'kabupaten' => null,
     'kecamatan' => null,
+    'showKecamatan' => true,
 ])
 <div
     class="flex flex-col gap-4"
@@ -24,7 +25,7 @@
         pick="pickProvinsi"
     />
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div @class(['grid grid-cols-1 gap-4', 'sm:grid-cols-2' => $showKecamatan])>
         <x-wilayah-combobox
             id="kabupaten_kota_kode"
             name="kabupaten_kota_kode"
@@ -37,17 +38,19 @@
             pick="pickKabupaten"
             disabled="!provinsi"
         />
-        <x-wilayah-combobox
-            id="kecamatan_kode"
-            name="kecamatan_kode"
-            label="Kecamatan"
-            placeholder="Cari kecamatan"
-            kode="kecamatan"
-            query="qKecamatan"
-            items="kecamatans"
-            open-key="kecamatan"
-            pick="pickKecamatan"
-            disabled="!kabupaten"
-        />
+        @if ($showKecamatan)
+            <x-wilayah-combobox
+                id="kecamatan_kode"
+                name="kecamatan_kode"
+                label="Kecamatan"
+                placeholder="Cari kecamatan"
+                kode="kecamatan"
+                query="qKecamatan"
+                items="kecamatans"
+                open-key="kecamatan"
+                pick="pickKecamatan"
+                disabled="!kabupaten"
+            />
+        @endif
     </div>
 </div>

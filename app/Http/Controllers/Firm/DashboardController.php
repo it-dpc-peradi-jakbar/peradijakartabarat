@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Firm;
 
 use App\Http\Controllers\Controller;
+use App\Models\Banner;
 use App\Models\InternshipApplication;
 use App\Models\LogbookEntry;
 use Illuminate\Support\Facades\Auth;
@@ -94,6 +95,7 @@ class DashboardController extends Controller
             'kuotaSlots' => $kuotaSlots,
             'firmTasks' => $firmTasks,
             'pemagang' => $pemagang,
+            'banners' => Banner::published()->forTarget(Banner::TARGET_FIRM)->orderByDesc('published_at')->get(),
         ]);
     }
 }
