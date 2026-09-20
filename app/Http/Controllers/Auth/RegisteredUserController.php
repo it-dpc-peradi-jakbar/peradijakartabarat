@@ -39,7 +39,18 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'national_id_number' => ['nullable', 'string', 'max:32'],
             'university' => ['nullable', 'string', 'max:255'],
+            'address' => ['required', 'string', 'max:500'],
         ]);
+        $request->validate(\App\Support\WilayahHierarchy::rules());
+        if (! \App\Support\WilayahHierarchy::isConsistent(
+            $request->input('provinsi_kode'),
+            $request->input('kabupaten_kota_kode'),
+            $request->input('kecamatan_kode')
+        )) {
+            throw ValidationException::withMessages([
+                'kecamatan_kode' => 'Kombinasi provinsi, kota/kabupaten, dan kecamatan tidak valid.',
+            ]);
+        }
 
         $user = DB::transaction(function () use ($request) {
             $user = User::create([
@@ -57,6 +68,10 @@ class RegisteredUserController extends Controller
                 'candidate_code' => sprintf('CA-%d-%04d', $year, $sequence),
                 'national_id_number' => $request->national_id_number,
                 'university' => $request->university,
+                'address' => $request->address,
+                'provinsi_kode' => $request->provinsi_kode,
+                'kabupaten_kota_kode' => $request->kabupaten_kota_kode,
+                'kecamatan_kode' => $request->kecamatan_kode,
                 'membership_status' => 'ACTIVE',
                 'verification_status' => 'PENDING',
             ]);

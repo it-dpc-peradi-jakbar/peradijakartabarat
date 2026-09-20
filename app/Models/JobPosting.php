@@ -18,10 +18,12 @@ class JobPosting extends Model
         'practice_areas',
         'quota',
         'status',
+        'provides_transport',
     ];
 
     protected $casts = [
         'practice_areas' => 'array',
+        'provides_transport' => 'boolean',
     ];
 
     public function lawFirm(): BelongsTo

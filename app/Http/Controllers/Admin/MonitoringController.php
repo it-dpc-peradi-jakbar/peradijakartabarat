@@ -11,14 +11,17 @@ class MonitoringController extends Controller
 {
     public function index(): View
     {
-        $kepatuhan = LawFirm::where('verification_status', 'VERIFIED')
-            ->get()
-            ->map(fn ($firm) => [
-                'firm' => $firm,
-                'pct' => $firm->kepatuhanLogbookPersen(),
-            ])
-            ->sortByDesc('pct')
-            ->values();
+        $kepatuhan = collect();
+        if (config('features.logbook')) {
+            $kepatuhan = LawFirm::where('verification_status', 'VERIFIED')
+                ->get()
+                ->map(fn ($firm) => [
+                    'firm' => $firm,
+                    'pct' => $firm->kepatuhanLogbookPersen(),
+                ])
+                ->sortByDesc('pct')
+                ->values();
+        }
 
         $alerts = [];
 
@@ -32,21 +35,23 @@ class MonitoringController extends Controller
             ];
         }
 
-        $telat = CandidateAdvocate::where('membership_status', 'ACTIVE')->whereNotNull('law_firm_id')->with(['user', 'lawFirm'])->get()
-            ->map(function ($ca) {
-                $last = $ca->logbookEntries()->latest('entry_date')->first();
-                $days = $last ? $last->entry_date->diffInDays(now()) : ($ca->internship_started_on?->diffInDays(now()) ?? 0);
+        if (config('features.logbook')) {
+            $telat = CandidateAdvocate::where('membership_status', 'ACTIVE')->whereNotNull('law_firm_id')->with(['user', 'lawFirm'])->get()
+                ->map(function ($ca) {
+                    $last = $ca->logbookEntries()->latest('entry_date')->first();
+                    $days = $last ? $last->entry_date->diffInDays(now()) : ($ca->internship_started_on?->diffInDays(now()) ?? 0);
 
-                return ['ca' => $ca, 'days' => $days];
-            })
-            ->sortByDesc('days')
-            ->first(fn ($row) => $row['days'] >= 14);
-        if ($telat) {
-            $alerts[] = [
-                'title' => 'Logbook tidak diisi '.$telat['days'].' hari',
-                'detail' => $telat['ca']->user->name.' — '.($telat['ca']->lawFirm->name ?? '-').'.',
-                'variant' => 'bad',
-            ];
+                    return ['ca' => $ca, 'days' => $days];
+                })
+                ->sortByDesc('days')
+                ->first(fn ($row) => $row['days'] >= 14);
+            if ($telat) {
+                $alerts[] = [
+                    'title' => 'Logbook tidak diisi '.$telat['days'].' hari',
+                    'detail' => $telat['ca']->user->name.' — '.($telat['ca']->lawFirm->name ?? '-').'.',
+                    'variant' => 'bad',
+                ];
+            }
         }
 
         $mendekati = CandidateAdvocate::where('membership_status', 'ACTIVE')->whereNotNull('law_firm_id')->with(['user', 'lawFirm'])->get()
@@ -66,10 +71,12 @@ class MonitoringController extends Controller
             ->filter(fn ($ca) => $ca->bulanBerjalan() >= $ca->internship_months - 2)
             ->map(function ($ca) {
                 $audit = $ca->finalAudits->first();
-                $monthlyLogbookSummaryBelumTtd = $ca->monthlyLogbookSummaries()->where('status', '!=', 'SIGNED')->count();
                 $status = $audit?->status ?? 'IN_PROGRESS';
                 $detail = $ca->bulanBerjalan().'/'.$ca->internship_months.' bulan';
-                $detail .= $monthlyLogbookSummaryBelumTtd > 0 ? ' · '.$monthlyLogbookSummaryBelumTtd.' rekap belum ditandatangani' : ' · logbook lengkap';
+                if (config('features.logbook')) {
+                    $monthlyLogbookSummaryBelumTtd = $ca->monthlyLogbookSummaries()->where('status', '!=', 'SIGNED')->count();
+                    $detail .= $monthlyLogbookSummaryBelumTtd > 0 ? ' · '.$monthlyLogbookSummaryBelumTtd.' rekap belum ditandatangani' : ' · logbook lengkap';
+                }
 
                 return ['ca' => $ca, 'status' => $status, 'detail' => $detail];
             })

@@ -58,6 +58,28 @@ final class DemoUserCatalog
             ['email' => 'dewi@peradijakbar.test', 'name' => 'Dewi Anggraini, S.H.', 'code' => 'CA-2024-0090', 'scenario' => '24/24 bulan, audit lulus, berkas sumpah lengkap'],
             ['email' => 'yoga@peradijakbar.test', 'name' => 'Yoga Permana, S.H.', 'code' => 'CA-2024-0102', 'scenario' => '24/24 bulan, audit berkas kurang'],
             ['email' => 'sinta@peradijakbar.test', 'name' => 'Sinta Wulandari, S.H.', 'code' => 'CA-2025-0233', 'scenario' => 'LBH Trisakti, 9 bulan magang'],
+            ['email' => 'dimas@peradijakbar.test', 'name' => 'Dimas Pratama, S.H.', 'code' => 'CA-2026-0101', 'scenario' => 'Terverifikasi, lamaran SUBMITTED — tes Terima'],
+            ['email' => 'putri@peradijakbar.test', 'name' => 'Putri Handayani, S.H.', 'code' => 'CA-2026-0102', 'scenario' => 'Terverifikasi, belum melamar — tes Lamar'],
+            ['email' => 'eko@peradijakbar.test', 'name' => 'Eko Santoso, S.H.', 'code' => 'CA-2026-0103', 'scenario' => 'Admisi belum unggah berkas — tes antrian admin'],
+            ['email' => 'hana@peradijakbar.test', 'name' => 'Hana Wijaya, S.H.', 'code' => 'CA-2026-0104', 'scenario' => 'Logbook telat 20 hari — tes alert monitoring'],
+            ['email' => 'budi@peradijakbar.test', 'name' => 'Budi Hartono, S.H.', 'code' => 'CA-2026-0105', 'scenario' => 'Ardiansyah, 8/24 bulan'],
+            ['email' => 'citra@peradijakbar.test', 'name' => 'Citra Lestari, S.H.', 'code' => 'CA-2026-0106', 'scenario' => 'Terverifikasi, lamaran ke Santika — tes pelamar firm lain'],
+        ];
+    }
+
+    /**
+     * Extra law-firm / pendamping logins (same password).
+     *
+     * @return list<array{email: string, name: string, firm: string, scenario: string}>
+     */
+    public static function extraFirmLogins(): array
+    {
+        return [
+            ['email' => 'santika@peradijakbar.test', 'name' => 'Ratna Santika, S.H., M.Kn.', 'firm' => 'Santika, Hartono & Partners', 'scenario' => 'Firm login Santika'],
+            ['email' => 'ardiansyah@peradijakbar.test', 'name' => 'Agus Ardiansyah, S.H.', 'firm' => 'Kantor Hukum Ardiansyah', 'scenario' => 'Firm login Ardiansyah'],
+            ['email' => 'lbh@peradijakbar.test', 'name' => 'Sari Melati, S.H.', 'firm' => 'LBH Kampus Universitas Trisakti', 'scenario' => 'Firm login LBH'],
+            ['email' => 'wijaya@peradijakbar.test', 'name' => 'Tono Wijaya, S.H.', 'firm' => 'Wijaya Legal Consult', 'scenario' => 'Firm masih PENDING verifikasi DPC'],
+            ['email' => 'kusuma@peradijakbar.test', 'name' => 'Lina Kusuma, S.H.', 'firm' => 'Kusuma & Associates', 'scenario' => 'Firm NEEDS_CORRECTION'],
         ];
     }
 }

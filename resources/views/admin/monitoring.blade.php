@@ -6,10 +6,11 @@
 <x-layout
     crumb="Admin DPC Jakarta Barat"
     title="Monitoring & audit akhir"
-    subtitle="Pantau kepatuhan logbook real-time dan audit kelayakan sumpah calon advokat."
+    subtitle="{{ config('features.logbook') ? 'Pantau kepatuhan logbook real-time dan audit kelayakan sumpah calon advokat.' : 'Pantau kuota magang dan audit kelayakan sumpah calon advokat.' }}"
     :menu="\App\Support\SidebarMenu::admin('monitoring')"
     user-meta="Admin Bidang Magang"
 >
+    @if (config('features.logbook'))
     <x-card class="p-6">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-[15px]">Kepatuhan logbook per kantor hukum</h2>
@@ -32,6 +33,7 @@
             @endforelse
         </div>
     </x-card>
+    @endif
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
         <x-card class="p-6">

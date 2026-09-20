@@ -17,6 +17,8 @@
             <x-input-error :messages="$errors->get('firm_address')" class="mt-2" />
         </div>
 
+        <x-wilayah-selects />
+
         <div>
             <x-input-label for="ministry_registration_number" value="Nomor SK / registrasi Kemenkumham (opsional)" />
             <x-text-input id="ministry_registration_number" class="block mt-1.5 w-full" type="text" name="ministry_registration_number" :value="old('ministry_registration_number')" autocomplete="off" />

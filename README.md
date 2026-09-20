@@ -2,15 +2,34 @@
 
 Platform web untuk mengelola program magang wajib 24 bulan bagi calon advokat (alumni lulus UPA) di bawah DPC PERADI Jakarta Barat, dibangun dari mockup `Platform_Magang_Fase_1`. Dibangun dengan **Laravel 10** dan **MySQL** (PHP **8.1+**).
 
+Dokumentasi sistem (bisnis, database, aplikasi): [`docs/README.md`](docs/README.md).
+
 ## Peran pengguna
 
 Aplikasi memiliki tiga peran dengan login terpisah (satu akun = satu peran):
 
 - **Calon Advokat** — dashboard alur magang, cari & melamar lowongan, riwayat lamaran, logbook digital harian, paket berkas sumpah.
 - **Law Firm** (advokat pendamping) — dashboard & kuota bimbingan, review pelamar & terbitkan surat penerimaan, review & tanda tangani logbook.
-- **Admin DPC** — verifikasi dua level (calon advokat & kantor hukum/pendamping), monitoring kepatuhan logbook dan audit akhir kelayakan sumpah.
+- **Admin DPC** — verifikasi dua level (calon advokat & kantor hukum/pendamping), pencocokan calon↔kantor, monitoring kepatuhan logbook dan audit akhir kelayakan sumpah.
 
-## Instalasi lokal
+## Docker (lokal, recommended for testing)
+
+```bash
+docker compose up --build
+```
+
+App: http://localhost:8000  
+MySQL from the host: `127.0.0.1:3307` (user/password/database `peradi`).
+
+First boot runs `composer install`, `npm run build`, migrate, `wilayah:import`, and seed. Later boots skip seed (flag `storage/app/.docker_seeded`) but still import wilayah. Compose also writes Docker DB settings into `.env` (`DB_HOST=mysql`). Reset everything:
+
+```bash
+docker compose down -v
+rm -f storage/app/.docker_seeded
+docker compose up --build
+```
+
+## Instalasi lokal (tanpa Docker)
 
 ```bash
 composer install
@@ -66,6 +85,22 @@ php artisan serve
 | `dewi@peradijakbar.test` | CA-2024-0090 | 24/24 bulan, audit lulus, berkas lengkap |
 | `yoga@peradijakbar.test` | CA-2024-0102 | 24/24 bulan, audit berkas kurang |
 | `sinta@peradijakbar.test` | CA-2025-0233 | LBH Trisakti, 9 bulan |
+| `dimas@peradijakbar.test` | CA-2026-0101 | Terverifikasi, lamaran SUBMITTED (tes Terima) |
+| `putri@peradijakbar.test` | CA-2026-0102 | Terverifikasi, belum melamar (tes Lamar) |
+| `eko@peradijakbar.test` | CA-2026-0103 | Admisi belum unggah (tes antrian admin) |
+| `hana@peradijakbar.test` | CA-2026-0104 | Logbook telat 20 hari (tes alert monitoring) |
+| `budi@peradijakbar.test` | CA-2026-0105 | Ardiansyah, 8/24 bulan |
+| `citra@peradijakbar.test` | CA-2026-0106 | Lamaran ke Santika |
+
+### Law firm tambahan (password sama)
+
+| Email | Kantor |
+|---|---|
+| `santika@peradijakbar.test` | Santika, Hartono & Partners |
+| `ardiansyah@peradijakbar.test` | Kantor Hukum Ardiansyah |
+| `lbh@peradijakbar.test` | LBH Trisakti |
+| `wijaya@peradijakbar.test` | Wijaya Legal Consult (PENDING) |
+| `kusuma@peradijakbar.test` | Kusuma & Associates (NEEDS_CORRECTION) |
 
 Daftar lengkap juga di `database/seeders/DemoUserCatalog.php`. Jalankan ulang data demo: `php artisan migrate:fresh --seed`.
 

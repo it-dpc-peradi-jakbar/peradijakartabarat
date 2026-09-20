@@ -13,6 +13,8 @@ class LogbookController extends Controller
 {
     public function index(): View
     {
+        abort_unless(config('features.logbook'), 404);
+
         $ca = Auth::user()->candidateAdvocate;
 
         $now = now();
@@ -32,6 +34,8 @@ class LogbookController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        abort_unless(config('features.logbook'), 404);
+
         $data = $request->validate([
             'activity_type' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],

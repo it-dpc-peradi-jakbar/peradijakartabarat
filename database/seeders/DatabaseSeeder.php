@@ -14,6 +14,7 @@ use App\Models\JobPosting;
 use App\Models\User;
 use App\Models\VerificationChecklist;
 use App\Support\CandidateVerificationChecklist;
+use App\Support\WilayahHierarchy;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -21,32 +22,35 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(WilayahSeeder::class);
+
         $password = Hash::make(DemoUserCatalog::PASSWORD);
+        $jakbar = WilayahHierarchy::jakbar();
 
         // ---- Law firms (verified, provide lowongan, appear in monitoring) ----
-        $wibisono = LawFirm::create([
+        $wibisono = LawFirm::create($jakbar + [
             'name' => 'Wibisono & Rekan', 'address' => 'Jl. Panjang No. 12, Kebon Jeruk, Jakarta Barat',
             'ministry_registration_number' => 'AHU-0041223.AH.01.01', 'max_quota' => 10,
             'verification_status' => 'VERIFIED', 'verified_at' => now()->subMonths(20),
         ]);
-        $santika = LawFirm::create([
+        $santika = LawFirm::create($jakbar + [
             'name' => 'Santika, Hartono & Partners', 'address' => 'Jl. Kebon Jeruk Raya No. 8, Jakarta Barat',
             'ministry_registration_number' => 'AHU-0038812.AH.01.01', 'max_quota' => 10,
             'verification_status' => 'VERIFIED', 'verified_at' => now()->subMonths(18),
         ]);
-        $ardiansyah = LawFirm::create([
+        $ardiansyah = LawFirm::create($jakbar + [
             'name' => 'Kantor Hukum Ardiansyah', 'address' => 'Jl. Puri Kembangan No. 21, Jakarta Barat',
             'ministry_registration_number' => 'AHU-0029931.AH.01.01', 'max_quota' => 10,
             'verification_status' => 'VERIFIED', 'verified_at' => now()->subMonths(15),
         ]);
-        $lbhTrisakti = LawFirm::create([
+        $lbhTrisakti = LawFirm::create($jakbar + [
             'name' => 'LBH Kampus Universitas Trisakti', 'address' => 'Jl. Kyai Tapa No. 1, Grogol, Jakarta Barat',
             'ministry_registration_number' => null, 'is_equivalent_law_firm' => true, 'max_quota' => 10,
             'verification_status' => 'VERIFIED', 'verified_at' => now()->subMonths(24),
         ]);
 
         // ---- Law firms pending Admin DPC verification ----
-        $wijaya = LawFirm::create([
+        $wijaya = LawFirm::create($jakbar + [
             'name' => 'Wijaya Legal Consult', 'address' => 'Jl. Tanjung Duren Raya No. 45, Jakarta Barat',
             'ministry_registration_number' => 'AHU-0055102.AH.01.01', 'max_quota' => 10,
             'verification_status' => 'PENDING',
@@ -57,7 +61,7 @@ class DatabaseSeeder extends Seeder
             ['checkable_type' => LawFirm::class, 'checkable_id' => $wijaya->id, 'label' => 'Bukti pengalaman praktik dilampirkan', 'is_checked' => true, 'created_at' => now(), 'updated_at' => now()],
         ]);
 
-        $kusuma = LawFirm::create([
+        $kusuma = LawFirm::create($jakbar + [
             'name' => 'Kusuma & Associates', 'address' => 'Jl. Cengkareng Raya No. 9, Jakarta Barat',
             'ministry_registration_number' => 'AHU-0061187.AH.01.01', 'max_quota' => 8,
             'verification_status' => 'NEEDS_CORRECTION',
@@ -87,6 +91,7 @@ class DatabaseSeeder extends Seeder
             'law_firm_id' => $santika->id, 'title' => 'Magang Calon Advokat — Litigasi Korporasi',
             'description' => 'Pendampingan perkara PKPU dan sengketa kontrak di PN Jakarta Barat.',
             'practice_areas' => ['Litigasi', 'Kepailitan', 'Full-time'], 'quota' => 10,
+            'provides_transport' => true,
         ]);
         JobPosting::create([
             'law_firm_id' => $ardiansyah->id, 'title' => 'Magang Calon Advokat — Hukum Keluarga',
@@ -102,18 +107,19 @@ class DatabaseSeeder extends Seeder
             'law_firm_id' => $wibisono->id, 'title' => 'Magang Calon Advokat — Litigasi Perdata & Kepailitan',
             'description' => 'Pendampingan perkara litigasi perdata dan kepailitan bersama advokat pendamping.',
             'practice_areas' => ['Litigasi', 'Korporasi', 'Full-time'], 'quota' => 10,
+            'provides_transport' => true,
         ]);
 
         // ---- Helper to create a calon advokat + login user ----
         $makeCalon = function (
             string $name, string $email, string $kode, array $attrs = []
-        ) use ($password) {
+        ) use ($password, $jakbar) {
             $user = User::create([
                 'name' => $name, 'email' => $email, 'password' => $password,
                 'role' => 'calon_advokat', 'email_verified_at' => now(),
             ]);
 
-            return CandidateAdvocate::create(array_merge([
+            return CandidateAdvocate::create(array_merge($jakbar, [
                 'user_id' => $user->id,
                 'candidate_code' => $kode,
                 'membership_status' => 'ACTIVE',
@@ -313,5 +319,50 @@ class DatabaseSeeder extends Seeder
             'name' => 'Sekretariat DPC', 'email' => 'admin@peradijakbar.test',
             'password' => $password, 'role' => 'admin_dpc', 'email_verified_at' => now(),
         ]);
+
+        $this->call(ExtraDemoSeeder::class);
+        $this->seedDemoMatches();
+    }
+
+    private function seedDemoMatches(): void
+    {
+        $adminId = User::where('email', 'admin@peradijakbar.test')->value('id');
+        $wibisono = LawFirm::where('name', 'Wibisono & Rekan')->firstOrFail();
+        $santika = LawFirm::where('name', 'Santika, Hartono & Partners')->firstOrFail();
+        $ardiansyah = LawFirm::where('name', 'Kantor Hukum Ardiansyah')->firstOrFail();
+        $lbh = LawFirm::where('name', 'LBH Kampus Universitas Trisakti')->firstOrFail();
+
+        $attach = function (array $emails, LawFirm $firm) use ($adminId) {
+            $ids = CandidateAdvocate::whereHas('user', fn ($q) => $q->whereIn('email', $emails))->pluck('id');
+            foreach ($ids as $id) {
+                CandidateAdvocate::find($id)->matchedLawFirms()->syncWithoutDetaching([
+                    $firm->id => ['matched_by' => $adminId],
+                ]);
+            }
+        };
+
+        $attach([
+            'andi@peradijakbar.test',
+            'dimas@peradijakbar.test',
+            'putri@peradijakbar.test',
+            'maya@peradijakbar.test',
+            'bagus@peradijakbar.test',
+            'laras@peradijakbar.test',
+            'rina@peradijakbar.test',
+            'rizky@peradijakbar.test',
+            'nadia@peradijakbar.test',
+            'fajar@peradijakbar.test',
+            'hana@peradijakbar.test',
+        ], $wibisono);
+        $attach([
+            'citra@peradijakbar.test',
+            'indra@peradijakbar.test',
+            'dewi@peradijakbar.test',
+        ], $santika);
+        $attach([
+            'yoga@peradijakbar.test',
+            'budi@peradijakbar.test',
+        ], $ardiansyah);
+        $attach(['sinta@peradijakbar.test'], $lbh);
     }
 }
