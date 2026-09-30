@@ -23,7 +23,10 @@ use App\Http\Controllers\Firm\LowonganController as FirmLowonganController;
 use App\Http\Controllers\Firm\PelamarController;
 use App\Http\Controllers\Firm\ReportController as FirmReportController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Pwa\ManifestController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/manifest.webmanifest', ManifestController::class)->name('pwa.manifest');
 
 Route::get('/up', function () {
     return response()->noContent();

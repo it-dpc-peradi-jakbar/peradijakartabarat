@@ -106,6 +106,28 @@ Daftar lengkap juga di `database/seeders/DemoUserCatalog.php`. Jalankan ulang da
 
 Registrasi mandiri: Advocate candidate (`/register/advocate-candidate`, `/register` redirects), Law firm (`/register/law-firm`). Admin DPC hanya dari seeder / provisi DPC.
 
+## PWA (install ke layar utama)
+
+Aplikasi dapat diinstal sebagai Progressive Web App (Add to Home Screen). Halaman tetap membutuhkan jaringan; service worker hanya mem-precache aset build (CSS/JS).
+
+**Persyaratan:** HTTPS di produksi (localhost untuk uji lokal).
+
+**Build:**
+
+```bash
+npm run build
+```
+
+Pada deploy subfolder (mis. `https://fchr.space/laravel/peradijakartabarat`), set `APP_URL` ke URL publik penuh, lalu build dengan base path yang sama:
+
+```bash
+VITE_APP_BASE=/laravel/peradijakartabarat/ npm run build
+```
+
+Manifest dihasilkan server di `/manifest.webmanifest` (mengikuti `APP_URL`). Service worker ada di `public/build/sw.js` setelah build; pada layout fchr.space, pastikan folder `build/` (termasuk `sw.js`) ada di webroot yang sama dengan `index.php`. Folder `public/pwa/` ikut disalin ke webroot.
+
+**Verifikasi:** Chrome DevTools → Application → Manifest (tanpa error) dan Service Workers terdaftar. Service worker tidak aktif di `npm run dev` (hanya setelah `npm run build`).
+
 ## Shared hosting (repo in `src/`)
 
 **Login 419 PAGE EXPIRED?** Set `APP_URL` to the exact public URL (including `https://` and subfolder path). Run `php artisan config:clear`. Ensure `storage/framework/sessions` is writable. After deploy, log in again in a fresh tab.
